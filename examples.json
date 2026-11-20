@@ -1,0 +1,52 @@
+[
+  {
+    "id": "oranges",
+    "model": "LLaDA-8B-Instruct",
+    "benchmark": "GSM8K",
+    "images": [
+      "1_decision_point.png",
+      "2_h_score.png",
+      "3_x_h.png",
+      "4_h_logits.png",
+      "5_guided_logits.png",
+      "6_guided_next_step.png",
+      "7_unguided_next_1.png",
+      "8_unguided_next_2.png",
+      "9_unguided_next_3.png"
+    ],
+    "captions": [
+      "Top-1 fill at the decision point, colored by confidence $p_{i,1}$. The token '8' (the correct number of non-good oranges: $1 + 5 + 2 = 8$) appears as the top-1 prediction with $p_{i,1} = 0.70$, while '7' ($p_{i,1} = 0.55$) appears as the result of $25 - 8$, and 'oranges' ($p_{i,1} = 0.87$) completes the sentence.",
+      "Branchability score $S_i$ (blue intensity). The position holding '8' receives a high score ($S_i = 0.14$): the model considers it plausible but is not fully confident, making it a strong hallucination candidate.",
+      "Hallucinated variant $x^{(h)}$: '8' replaced by '7,' producing the sequence '$25 - 7 = 18$' as a speculative (incorrect) future.",
+      "Hallucinated logits: both '7' and 'oranges' receive probability 1.00 under the hallucinated context.",
+      "Guided logits. Guidance penalizes 'oranges' because the hallucinated branch also endorses it; it boosts '8' (to $p = 0.85$) because '8' did not appear in the hallucinated future — widening the margin between the correct trajectory and the plausible-but-wrong alternative.",
+      "Guided next step: commits '8' (correct), producing the answer $25 - 8 = 17$.",
+      "Unguided step 1: avoids the uncertain '8' position entirely, preferentially unmasking high-confidence tokens elsewhere ('total,' 'number,' 'sour,' etc.).",
+      "Unguided step 2: still defers the difficult '8' position while surrounding tokens continue to lock in.",
+      "Unguided step 3: forced into '7' once surrounding context has committed to a trajectory consistent with that token, yielding the incorrect answer $25 - 7 = 18$. Guidance confronted the model with the difficult decision early; without it, deferral until context locked in the wrong answer."
+    ]
+  },
+  {
+    "id": "virus",
+    "model": "LLaDA-8B-Instruct",
+    "benchmark": "GPQA",
+    "images": [
+      "1_decision_point.png",
+      "2_h_score.png",
+      "3_x_hallucinated.png",
+      "4_x_hal_logits.png",
+      "5_guided_logits.png",
+      "7_guided_next.png",
+      "6_unguided_next.png"
+    ],
+    "captions": [
+      "Top-1 fill at the decision point: the model predicts 'IgG' ($p_{i,1} = 0.94$, answer B), but simultaneously predicts 'cDNA' ($p_{i,1} = 0.72$) and 'sequencing' ($p_{i,1} = 0.92$) from the correct answer D. Two out of three answer-determining tokens point toward D, yet the single highest-confidence token points toward B.",
+      "Branchability scores: 'IgG' ($S_i = 0.05$) and 'sequencing' ($S_i = 0.05$) both score low despite pointing to opposite answers — the model is simultaneously certain about tokens from two incompatible trajectories. 'cDNA' scores higher ($S_i = 0.15$), flagging it as the best hallucination candidate.",
+      "Hallucinated variant: 'antibodies' replaces 'cDNA' among other changes, tilting the speculative future toward the incorrect answer B.",
+      "Hallucinated logits: conditioned on this B-leaning variant, the model fully commits to answer B — 'IgG,' 'antibodies,' 'for,' 'the,' 'infection' all at $p \\geq 0.96$.",
+      "Guided logits: 'IgG' and 'infection' are penalized for receiving high probability in the error-prone hallucinated branch. 'sequencing' ($p = 0.95$) is elevated because it did not feature prominently in the hallucinated variant. Crucially, this changes the confidence ranking across positions: 'sequencing' now outranks 'IgG,' so the unmasking procedure will commit it first.",
+      "Guided branch commits 'sequencing,' anchoring generation to answer D (correct). Final output: 'First you identify the virus by performing cDNA sequencing. You then develop a real time PCR kit…'",
+      "Unguided branch commits 'IgG,' anchoring to answer B (incorrect). Final output: 'First you identify the IgG antibodies for the infection. You then develop an ELISA kit targeting IgG antibodies…'"
+    ]
+  }
+]
